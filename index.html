@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="th" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08121f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308121f'/%3E%3Cpath d='M16 20h32v8H36v24h-8V28H16z' fill='%232dd4bf'/%3E%3C/svg%3E">
+  <title>ถุงและกระสอบพลาสติก สำหรับหุ้น TPBI, MBAX</title>
+  <script>
+    (() => {
+      try {
+        const savedTheme = localStorage.getItem("tpbiMbaxExportTheme");
+        document.documentElement.dataset.theme = savedTheme === "light" ? "light" : "dark";
+      } catch (_error) {
+        document.documentElement.dataset.theme = "dark";
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#appRoot">ข้ามไปยังเนื้อหาหลัก</a>
+
+  <div id="appError" class="app-error" role="alert" hidden>
+    <strong>ไม่สามารถโหลดข้อมูล Dashboard</strong>
+    <span>ไม่พบ data.js หรือรูปแบบข้อมูลไม่ครบ กรุณารันขั้นตอนอัปเดตข้อมูลแล้วเปิดหน้าอีกครั้ง</span>
+  </div>
+
+  <main id="appRoot" class="shell">
+    <header class="dashboard-head">
+      <div class="head-copy">
+        <p class="eyebrow">Thailand Export Monitor</p>
+        <h1 id="dashboardTitle">ถุงและกระสอบพลาสติก สำหรับหุ้น TPBI, MBAX</h1>
+        <p id="coverageText" class="subtle">กำลังโหลดข้อมูล…</p>
+      </div>
+      <div class="head-actions" aria-label="การทำงานของ Dashboard">
+        <a id="sourceLink" class="secondary-btn source-link" href="https://tradereport.moc.go.th/th/stat/reporthscodeexport01" target="_blank" rel="noreferrer">MOC Source</a>
+        <a id="downloadCsvBtn" class="primary-btn action-btn" href="#" download>ดาวน์โหลด CSV</a>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="เปลี่ยนเป็นโหมดสว่าง" aria-pressed="true">
+          <span class="theme-icon" aria-hidden="true">☾</span>
+          <span id="themeToggleText">Dark</span>
+        </button>
+      </div>
+    </header>
+
+    <aside id="stockProxyCaveat" class="proxy-caveat" aria-label="ข้อจำกัดในการใช้ข้อมูล">
+      ข้อมูลนี้เป็นสถิติการส่งออกรวมของไทยตาม HS Code ไม่ใช่รายได้หรือยอดส่งออกของ TPBI หรือ MBAX โดยตรง และควรใช้เป็นตัวชี้วัดอุตสาหกรรมประกอบการวิเคราะห์เท่านั้น
+    </aside>
+
+    <section id="kpiGrid" class="kpi-grid" aria-label="ตัวเลขสำคัญรวมทุกประเทศ"></section>
+
+    <section class="control-band" aria-label="ตัวกรอง Dashboard">
+      <label class="control-group control-wide">
+        <span class="control-label">ขอบเขต HS Code</span>
+        <select id="hsScopeSelect">
+          <option value="combined">รวม HS 392321 + 392329</option>
+          <option value="392321">HS 392321 — ถุง/กระสอบ PE</option>
+          <option value="392329">HS 392329 — ถุง/กระสอบพลาสติกอื่น</option>
+        </select>
+      </label>
+
+      <div class="control-group">
+        <span class="control-label">ช่วงเวลา</span>
+        <div id="periodControls" class="segmented" role="group" aria-label="เลือกช่วงเวลา">
+          <button type="button" data-period="month" class="active" aria-pressed="true">รายเดือน</button>
+          <button type="button" data-period="quarter" aria-pressed="false">รายไตรมาส</button>
+          <button type="button" data-period="year" aria-pressed="false">รายปี</button>
+        </div>
+      </div>
+
+      <label class="control-group">
+        <span class="control-label">มุมมอง</span>
+        <select id="dimensionSelect">
+          <option value="total">รวมทุกประเทศ</option>
+          <option value="country">รายประเทศ</option>
+          <option value="continent">รายทวีป</option>
+        </select>
+      </label>
+
+      <label class="control-group">
+        <span class="control-label">ตัวชี้วัด</span>
+        <select id="metricSelect">
+          <option value="value">มูลค่า</option>
+          <option value="quantity">ปริมาณ</option>
+        </select>
+      </label>
+
+      <label class="control-group">
+        <span class="control-label">การเติบโต</span>
+        <select id="growthSelect"></select>
+      </label>
+    </section>
+
+    <section id="entityBand" class="entity-band" aria-label="เลือกประเทศหรือทวีป" hidden>
+      <div class="entity-toolbar">
+        <label class="entity-search-wrap">
+          <span class="control-label">ค้นหาและเลือกประเทศ/ทวีป</span>
+          <input id="entitySearch" type="search" placeholder="ค้นหาชื่อหรือรหัสประเทศ" autocomplete="off">
+        </label>
+        <div class="entity-actions" role="group" aria-label="ชุดการเลือก">
+          <button id="selectTopBtn" type="button">Top 10</button>
+          <button id="selectAllBtn" type="button">ทั้งหมด</button>
+          <button id="clearSelectionBtn" type="button">ล้าง</button>
+        </div>
+      </div>
+      <div id="entityList" class="entity-list"></div>
+    </section>
+
+    <section class="chart-grid" aria-label="กราฟการส่งออกและการเติบโต">
+      <article class="panel chart-panel">
+        <div class="panel-title">
+          <div>
+            <h2>ยอดส่งออก</h2>
+            <p id="levelSubtitle" class="subtle"></p>
+          </div>
+          <span id="levelUnit" class="unit-pill"></span>
+        </div>
+        <div id="levelChart" class="chart" aria-live="polite"></div>
+        <div id="levelPointDetail" class="point-detail"></div>
+      </article>
+
+      <article class="panel chart-panel">
+        <div class="panel-title">
+          <div>
+            <h2>การเติบโต</h2>
+            <p id="growthSubtitle" class="subtle"></p>
+          </div>
+          <span class="unit-pill">%</span>
+        </div>
+        <div id="growthChart" class="chart" aria-live="polite"></div>
+        <div id="growthPointDetail" class="point-detail"></div>
+      </article>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="panel-title table-heading">
+        <div>
+          <h2>ตัวเลขรายงวด</h2>
+          <p id="tableSubtitle" class="subtle"></p>
+        </div>
+        <div class="table-controls">
+          <label>
+            <span>เรียงตาม</span>
+            <select id="sortKeySelect">
+              <option value="period">งวด</option>
+              <option value="value">มูลค่า</option>
+              <option value="quantity">ปริมาณ</option>
+              <option value="share">Share</option>
+              <option value="growthValue">Growth มูลค่า</option>
+              <option value="growthQuantity">Growth ปริมาณ</option>
+            </select>
+          </label>
+          <label>
+            <span>ลำดับ</span>
+            <select id="sortDirSelect">
+              <option value="desc">มากไปน้อย</option>
+              <option value="asc">น้อยไปมาก</option>
+            </select>
+          </label>
+          <label>
+            <span>จำนวนแถว</span>
+            <select id="rowLimitSelect">
+              <option value="50">50</option>
+              <option value="100" selected>100</option>
+              <option value="250">250</option>
+              <option value="100000">ทั้งหมด</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="table-wrap" tabindex="0" aria-label="ตารางตัวเลขรายงวด เลื่อนในแนวนอนได้">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">งวด</th>
+              <th scope="col">รายการ</th>
+              <th scope="col" class="num">มูลค่า (บาท)</th>
+              <th scope="col" class="num">ปริมาณ</th>
+              <th scope="col" class="num" id="shareHeader">Share มูลค่า</th>
+              <th scope="col" class="num" id="growthValueHeader">Growth มูลค่า</th>
+              <th scope="col" class="num" id="growthQuantityHeader">Growth ปริมาณ</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="source-panel" aria-labelledby="sourceHeading">
+      <div class="panel-title">
+        <div>
+          <h2 id="sourceHeading">แหล่งข้อมูลและการตรวจสอบ</h2>
+          <p class="subtle">รายละเอียดความสดใหม่ ขอบเขต และการกระทบยอดข้อมูล</p>
+        </div>
+      </div>
+      <div id="sourceDetails" class="source-grid"></div>
+    </section>
+  </main>
+
+  <noscript>
+    <p class="noscript">Dashboard นี้ต้องเปิดใช้งาน JavaScript เพื่อคำนวณยอดรวมและแสดงกราฟ</p>
+  </noscript>
+  <script>
+    (() => {
+      const cacheStamp = Date.now();
+      const showLoadError = () => {
+        const error = document.getElementById("appError");
+        if (error) error.hidden = false;
+      };
+      const dataScript = document.createElement("script");
+      dataScript.src = `data.js?v=${cacheStamp}`;
+      dataScript.onerror = showLoadError;
+      dataScript.onload = () => {
+        const appScript = document.createElement("script");
+        appScript.src = `app.js?v=${cacheStamp}`;
+        appScript.onerror = showLoadError;
+        document.body.appendChild(appScript);
+      };
+      document.body.appendChild(dataScript);
+    })();
+  </script>
+</body>
+</html>
