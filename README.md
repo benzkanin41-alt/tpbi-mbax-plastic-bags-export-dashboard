@@ -4,7 +4,7 @@
 
 - HS 392321: sacks and bags of polymers of ethylene
 - HS 392329: sacks and bags of other plastics
-- Coverage: January 2021 through July 2026
+- Coverage: January 2021 through August 2026
 - Metrics: export value (THB) and quantity (KGM)
 - Views: monthly, quarterly, yearly, country, continent, MoM, QoQ, and YoY
 
